@@ -1,0 +1,220 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Locale;
+
+public class ForexConverterGUI extends JFrame {
+    // Static exchange rates
+    private static final double INR_TO_USD = 83.20;
+    private static final double INR_TO_EUR = 89.50;
+    private static final double INR_TO_GBP = 104.50;
+    private static final double INR_TO_SAR = 22.18;
+    private static final double INR_TO_JPY = 0.57;
+    private static final double INR_TO_AUD = 53.85;
+    
+    private static final double USD_TO_INR = 83.20;
+    private static final double EUR_TO_INR = 89.50;
+    private static final double GBP_TO_INR = 104.50;
+    private static final double SAR_TO_INR = 22.18;
+    private static final double JPY_TO_INR = 0.57;
+    private static final double AUD_TO_INR = 53.85;
+
+    private JTextField amountField;
+    private JComboBox<String> fromCurrency, toCurrency;
+    private JLabel resultLabel;
+    
+    private ArrayList<String> conversionHistory = new ArrayList<>();
+
+    public ForexConverterGUI() {
+        setTitle("Forex Converter - GlobeXchange Company");
+        setSize(600, 500);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new GridLayout(8, 2, 10, 10));
+
+        // Input amount
+        add(new JLabel("Enter Amount:"));
+        amountField = new JTextField();
+        add(amountField);
+
+        // From currency dropdown
+        add(new JLabel("From Currency:"));
+        fromCurrency = new JComboBox<>(new String[]{"INR", "USD", "EUR", "GBP", "SAR", "JPY", "AUD"});
+        add(fromCurrency);
+
+        // To currency dropdown
+        add(new JLabel("To Currency:"));
+        toCurrency = new JComboBox<>(new String[]{"INR", "USD", "EUR", "GBP", "SAR", "JPY", "AUD"});
+        add(toCurrency);
+
+        // Convert button
+        JButton convertButton = new JButton("Convert");
+        add(convertButton);
+
+        // Result label
+        resultLabel = new JLabel("");
+        add(resultLabel);
+
+        // History button
+        JButton historyButton = new JButton("View History");
+        add(historyButton);
+
+        // Clear history button
+        JButton clearHistoryButton = new JButton("Clear History");
+        add(clearHistoryButton);
+
+        // Clear button
+        JButton clearButton = new JButton("Clear");
+        add(clearButton);
+
+        // Action listener for the convert button
+        convertButton.addActionListener(e -> convertCurrency());
+
+        // Action listener for the clear button
+        clearButton.addActionListener(e -> clearFields());
+
+        // Action listener for history button
+        historyButton.addActionListener(e -> displayHistory());
+
+        // Action listener for clear history button
+        clearHistoryButton.addActionListener(e -> clearHistory());
+    }
+
+    // Method to perform currency conversion
+    private void convertCurrency() {
+        try {
+            double amount = Double.parseDouble(amountField.getText());
+            String fromCurr = (String) fromCurrency.getSelectedItem();
+            String toCurr = (String) toCurrency.getSelectedItem();
+
+            if (fromCurr.equals(toCurr)) {
+                resultLabel.setText("Please select different currencies to convert.");
+                return;
+            }
+
+            double convertedAmount = 0;
+            String conversionDetails = "";
+
+            // Perform conversion based on selected currencies
+            switch (fromCurr) {
+                case "INR":
+                    convertedAmount = convertFromINR(toCurr, amount);
+                    break;
+                case "USD":
+                    convertedAmount = amount * USD_TO_INR;
+                    break;
+                case "EUR":
+                    convertedAmount = amount * EUR_TO_INR;
+                    break;
+                case "GBP":
+                    convertedAmount = amount * GBP_TO_INR;
+                    break;
+                case "SAR":
+                    convertedAmount = amount * SAR_TO_INR;
+                    break;
+                case "JPY":
+                    convertedAmount = amount * JPY_TO_INR;
+                    break;
+                case "AUD":
+                    convertedAmount = amount * AUD_TO_INR;
+                    break;
+            }
+
+            conversionDetails = formatAmount(amount, fromCurr) + " = " + formatAmount(convertedAmount, toCurr);
+            resultLabel.setText(conversionDetails);
+            addToHistory(conversionDetails);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid number", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Method to convert INR to other currencies
+    private double convertFromINR(String toCurr, double amount) {
+        switch (toCurr) {
+            case "USD":
+                return amount / INR_TO_USD;
+            case "EUR":
+                return amount / INR_TO_EUR;
+            case "GBP":
+                return amount / INR_TO_GBP;
+            case "SAR":
+                return amount / INR_TO_SAR;
+            case "JPY":
+                return amount / INR_TO_JPY;
+            case "AUD":
+                return amount / INR_TO_AUD;
+            default:
+                return amount;
+        }
+    }
+
+    // Method to add conversion details to history
+    private void addToHistory(String conversionDetails) {
+        conversionHistory.add(conversionDetails);
+    }
+
+    // Method to display conversion history
+    private void displayHistory() {
+        if (conversionHistory.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No conversion history available.");
+        } else {
+            StringBuilder history = new StringBuilder("Conversion History:\n");
+            for (String entry : conversionHistory) {
+                history.append(entry).append("\n");
+            }
+            JOptionPane.showMessageDialog(this, history.toString());
+        }
+    }
+
+    // Method to clear conversion history
+    private void clearHistory() {
+        conversionHistory.clear();
+        JOptionPane.showMessageDialog(this, "Conversion history cleared.");
+    }
+
+    // Helper method to format currency amounts
+    private String formatAmount(double amount, String currencyCode) {
+        NumberFormat formatter;
+        switch (currencyCode) {
+            case "USD":
+                formatter = NumberFormat.getCurrencyInstance(Locale.US);
+                break;
+            case "EUR":
+                formatter = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+                break;
+            case "GBP":
+                formatter = NumberFormat.getCurrencyInstance(Locale.UK);
+                break;
+            case "INR":
+                formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+                break;
+            case "JPY":
+                formatter = NumberFormat.getCurrencyInstance(Locale.JAPAN);
+                break;
+            case "AUD":
+                formatter = NumberFormat.getCurrencyInstance(new Locale("en", "AU"));
+                break;
+            case "SAR":
+                formatter = NumberFormat.getCurrencyInstance(new Locale("ar", "SA"));
+                break;
+            default:
+                formatter = NumberFormat.getCurrencyInstance();
+        }
+        return formatter.format(amount);
+    }
+
+    // Method to clear input fields
+    private void clearFields() {
+        amountField.setText("");
+        resultLabel.setText("");
+    }
+
+    // Main method to run the application
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            ForexConverterGUI converter = new ForexConverterGUI();
+            converter.setVisible(true);
+        });
+    }
+}
